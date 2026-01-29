@@ -14,6 +14,18 @@ terraform {
       source  = "hashicorp/random"
       version = "~> 3.0"
     }
+  }
+
+  # Uncomment for remote state
+  # backend "s3" {
+  #   bucket = "your-terraform-state-bucket"
+  #   key    = "orders-api/terraform.tfstate"
+  #   region = "eu-west-1"
+  # }
+}
+
+provider "aws" {
+  region = var.aws_region
 
   default_tags {
     tags = merge(
