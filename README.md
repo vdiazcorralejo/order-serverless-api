@@ -12,6 +12,7 @@
 **⚡ Quick Links:**
 - [🚀 Quick Start (5 min)](docs/QUICKSTART.md)
 - [💻 Windows Guide](docs/WINDOWS_GUIDE.md)
+- [🧪 Testing Guide](docs/TESTING.md) ⭐ NEW
 - [🎯 Executive Summary](docs/EXECUTIVE_SUMMARY.md)
 - [📖 API Examples](docs/API_EXAMPLES.md)
 - [🏗️ Architecture Details](docs/architecture.md)
@@ -209,8 +210,46 @@ orders-serverless-api/
 ├── docs/                      # Documentación
 │   └── decisions.md           # Decisiones arquitectónicas
 │
+├── tests/                     # 🧪 NEW: Test suite completa
+│   ├── unit/                  # Tests unitarios (40+ tests)
+│   ├── integration/           # Tests E2E (10+ tests)
+│   ├── conftest.py            # Fixtures compartidas
+│   └── requirements.txt       # Dependencias de tests
+│
+├── .github/workflows/         # 🔄 NEW: CI/CD automation
+│   └── tests.yml              # GitHub Actions pipeline
+│
+├── pytest.ini                 # 🧪 NEW: Configuración pytest
+├── .coveragerc                # 📊 NEW: Configuración coverage
+├── .pre-commit-config.yaml    # 🔍 NEW: Pre-commit hooks
+│
 └── README.md                  # Este archivo
 ```
+
+## 🧪 Testing (Phase 2)
+
+### Ejecutar Tests
+
+```bash
+# Instalar dependencias
+pip install -r tests/requirements.txt
+
+# Todos los tests
+pytest
+
+# Solo unit tests (rápidos)
+pytest tests/unit/
+
+# Con coverage
+pytest --cov=src/orders --cov-report=html
+```
+
+### Coverage Actual
+- **50+ test cases** (unit + integration)
+- **~80-85% code coverage**
+- Tests automatizados en CI/CD
+
+Ver [docs/TESTING.md](docs/TESTING.md) para guía completa.
 
 ## 🎯 Decisiones Técnicas
 
