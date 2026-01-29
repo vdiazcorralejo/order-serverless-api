@@ -1,0 +1,20 @@
+# Test dependencies for Orders Serverless API
+
+# Testing framework
+pytest==7.4.3
+pytest-cov==4.1.0
+pytest-mock==3.12.0
+pytest-asyncio==0.21.1
+pytest-env==1.1.1
+
+# AWS mocking
+moto==4.2.9
+boto3==1.34.19
+botocore==1.34.19
+
+# HTTP requests for integration tests
+requests==2.31.0
+
+# Code quality
+pytest-xdist==3.5.0  # Parallel test execution
+pytest-timeout==2.2.0  # Test timeouts
