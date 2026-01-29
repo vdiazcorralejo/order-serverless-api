@@ -6,15 +6,28 @@ from decimal import Decimal
 import uuid
 from typing import Dict, Any
 
-from models import Order, OrderStatus
-from repository import OrderRepository
+try:
+    from orders.models import Order, OrderStatus
+    from orders.repository import OrderRepository
+except ImportError:
+    # For Lambda execution environment
+    from models import Order, OrderStatus
+    from repository import OrderRepository
 
 # Configure logging
 logger = logging.getLogger()
 logger.setLevel(os.getenv("LOG_LEVEL", "INFO"))
 
-# Initialize repository
-repository = OrderRepository()
+# Repository will be initialized on first use
+_repository = None
+
+
+def get_repository():
+    """Get or create repository instance (lazy initialization)"""
+    global _repository
+    if _repository is None:
+        _repository = OrderRepository()
+    return _repository
 
 
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
@@ -23,6 +36,9 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     Handles all CRUD operations based on HTTP method and path
     """
     logger.info(f"Received event: {json.dumps(event)}")
+
+    # Get repository instance
+    repository = get_repository()
 
     try:
         http_method = event['httpMethod']
@@ -64,6 +80,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
 def handle_create_order(event: Dict[str, Any], customer_id: str) -> Dict[str, Any]:
     """Handle POST /v1/orders"""
+    repository = get_repository()
     try:
         body = json.loads(event.get('body', '{}'))
 
@@ -105,6 +122,7 @@ def handle_create_order(event: Dict[str, Any], customer_id: str) -> Dict[str, An
 
 def handle_get_order(order_id: str) -> Dict[str, Any]:
     """Handle GET /v1/orders/{id}"""
+    repository = get_repository()
     try:
         order = repository.get_order(order_id)
 
@@ -120,6 +138,7 @@ def handle_get_order(order_id: str) -> Dict[str, Any]:
 
 def handle_list_orders(event: Dict[str, Any], query_params: Dict[str, str]) -> Dict[str, Any]:
     """Handle GET /v1/orders"""
+    repository = get_repository()
     try:
         customer_id = query_params.get('customer_id')
         limit = int(query_params.get('limit', 50))
@@ -138,6 +157,7 @@ def handle_list_orders(event: Dict[str, Any], query_params: Dict[str, str]) -> D
 
 def handle_update_order(order_id: str, event: Dict[str, Any]) -> Dict[str, Any]:
     """Handle PUT /v1/orders/{id}"""
+    repository = get_repository()
     try:
         body = json.loads(event.get('body', '{}'))
 
@@ -173,6 +193,7 @@ def handle_update_order(order_id: str, event: Dict[str, Any]) -> Dict[str, Any]:
 
 def handle_delete_order(order_id: str) -> Dict[str, Any]:
     """Handle DELETE /v1/orders/{id}"""
+    repository = get_repository()
     try:
         # Check if order exists
         existing_order = repository.get_order(order_id)

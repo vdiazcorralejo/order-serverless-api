@@ -20,7 +20,7 @@ from orders.models import Order, OrderStatus, OrderItem
 @pytest.fixture
 def mock_repository():
     """Mock OrderRepository."""
-    with patch('orders.handler.OrderRepository') as mock:
+    with patch('orders.handler.get_repository') as mock:
         repo_instance = Mock()
         mock.return_value = repo_instance
         yield repo_instance

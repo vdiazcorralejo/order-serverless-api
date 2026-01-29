@@ -4,8 +4,13 @@ from boto3.dynamodb.conditions import Key
 from typing import Optional, List
 from datetime import datetime
 from decimal import Decimal
-from models import Order, OrderStatus
 import logging
+
+try:
+    from orders.models import Order, OrderStatus
+except ImportError:
+    # For Lambda execution environment
+    from models import Order, OrderStatus
 
 logger = logging.getLogger()
 logger.setLevel(os.getenv("LOG_LEVEL", "INFO"))
@@ -14,9 +19,11 @@ logger.setLevel(os.getenv("LOG_LEVEL", "INFO"))
 class OrderRepository:
     """DynamoDB repository for orders"""
 
-    def __init__(self):
+    def __init__(self, table_name: Optional[str] = None):
         self.dynamodb = boto3.resource('dynamodb')
-        self.table_name = os.getenv('DYNAMODB_TABLE')
+        self.table_name = table_name or os.getenv('DYNAMODB_TABLE')
+        if not self.table_name:
+            raise ValueError("table_name must be provided or DYNAMODB_TABLE environment variable must be set")
         self.table = self.dynamodb.Table(self.table_name)
         logger.info(f"Initialized OrderRepository with table: {self.table_name}")
 
