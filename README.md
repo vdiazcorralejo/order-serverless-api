@@ -6,6 +6,8 @@
 [![Python](https://img.shields.io/badge/Python-3.11-blue.svg)](https://www.python.org/)
 [![AWS](https://img.shields.io/badge/AWS-Serverless-orange.svg)](https://aws.amazon.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Tests](https://img.shields.io/badge/Tests-36%20passing-brightgreen.svg)](docs/TESTING.md)
+[![Coverage](https://img.shields.io/badge/Coverage-73.57%25-yellow.svg)](docs/PHASE2_SUMMARY.md)
 
 **Stack:** Lambda | API Gateway | DynamoDB | Cognito | CloudWatch | Terraform
 
@@ -112,6 +114,43 @@ Terraform te dará:
 - `api_gateway_url`: URL base de la API
 - `cognito_user_pool_id`: ID del User Pool para autenticación
 - `cognito_user_pool_client_id`: Client ID para la aplicación
+
+## 🧪 Testing
+
+El proyecto incluye una suite completa de tests con **36 tests unitarios** (100% passing) y **73.57% de cobertura de código**.
+
+### Ejecutar tests
+
+```bash
+# Instalar dependencias de testing
+pip install -r tests/requirements.txt
+
+# Ejecutar todos los tests
+pytest tests/unit/ -v
+
+# Ejecutar con cobertura
+pytest tests/unit/ --cov=src/orders --cov-report=term-missing
+
+# Ejecutar tests específicos
+pytest tests/unit/test_handler.py -v
+pytest tests/unit/test_models.py -v
+pytest tests/unit/test_repository.py -v
+```
+
+### Suite de tests
+
+- **14 tests de handler**: POST, GET, PUT, DELETE, error handling
+- **13 tests de models**: Order, OrderItem, OrderStatus, validaciones
+- **9 tests de repository**: CRUD operations con DynamoDB (moto)
+
+### CI/CD
+
+GitHub Actions ejecuta automáticamente:
+- Tests unitarios en Python 3.11
+- Reporte de cobertura
+- Pre-commit hooks (black, flake8, isort, bandit)
+
+📖 **Documentación completa**: [TESTING.md](docs/TESTING.md) | [PHASE2_SUMMARY.md](docs/PHASE2_SUMMARY.md)
 
 ## 🔐 Autenticación
 
