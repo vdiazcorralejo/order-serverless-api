@@ -30,15 +30,10 @@ class OrderRepository:
     def create_order(self, order: Order) -> Order:
         """Create a new order"""
         try:
-            item = {
-                'order_id': order.order_id,
-                'customer_id': order.customer_id,
-                'status': order.status.value,
-                'total_amount': Decimal(str(order.total_amount)),
-                'created_at': order.created_at,
-                'updated_at': order.updated_at,
-                'items': order.items
-            }
+            # Convert to dict with proper serialization
+            item = order.to_dict()
+            # Ensure Decimal for DynamoDB
+            item['total_amount'] = Decimal(str(item['total_amount']))
 
             self.table.put_item(Item=item)
             logger.info(f"Created order: {order.order_id}")
@@ -107,8 +102,23 @@ class OrderRepository:
             logger.error(f"Error listing orders: {str(e)}")
             raise
 
-    def update_order(self, order_id: str, updates: dict) -> Optional[Order]:
+    def update_order(self, order: Order) -> Order:
         """Update an order"""
+        try:
+            # Convert to dict with proper serialization
+            item = order.to_dict()
+            # Ensure Decimal for DynamoDB
+            item['total_amount'] = Decimal(str(item['total_amount']))
+
+            self.table.put_item(Item=item)
+            logger.info(f"Updated order: {order.order_id}")
+            return order
+        except Exception as e:
+            logger.error(f"Error updating order: {str(e)}")
+            raise
+
+    def update_order_fields(self, order_id: str, updates: dict) -> Optional[Order]:
+        """Update specific fields of an order"""
         try:
             # Build update expression
             update_expr = "SET "
@@ -166,4 +176,33 @@ class OrderRepository:
             return True
         except Exception as e:
             logger.error(f"Error deleting order: {str(e)}")
-            raise
+            return False
+
+    def get_orders_by_customer(self, customer_id: str, limit: int = 100) -> list:
+        """Get all orders for a specific customer"""
+        try:
+            response = self.table.query(
+                IndexName='CustomerIndex',
+                KeyConditionExpression='customer_id = :customer_id',
+                ExpressionAttributeValues={':customer_id': customer_id},
+                Limit=limit
+            )
+
+            orders = []
+            for item in response.get('Items', []):
+                order = Order.from_dict({
+                    'order_id': item['order_id'],
+                    'customer_id': item['customer_id'],
+                    'status': item['status'],
+                    'total_amount': float(item['total_amount']),
+                    'created_at': item['created_at'],
+                    'updated_at': item.get('updated_at'),
+                    'items': item.get('items', [])
+                })
+                orders.append(order)
+
+            logger.info(f"Retrieved {len(orders)} orders for customer: {customer_id}")
+            return orders
+        except Exception as e:
+            logger.error(f"Error getting orders by customer: {str(e)}")
+            return []

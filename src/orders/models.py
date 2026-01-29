@@ -28,7 +28,7 @@ class OrderItem:
         return {
             "product_id": self.product_id,
             "quantity": self.quantity,
-            "price": float(self.price)
+            "price": str(self.price)
         }
 
     @classmethod

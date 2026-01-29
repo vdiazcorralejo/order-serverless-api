@@ -55,7 +55,7 @@ class TestOrderItem:
 
         assert item_dict["product_id"] == "prod-123"
         assert item_dict["quantity"] == 2
-        assert item_dict["price"] == 29.99  # Converted to float
+        assert item_dict["price"] == "29.99"  # Now a string
 
     def test_order_item_from_dict(self):
         """Test order item deserialization."""

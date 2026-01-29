@@ -58,6 +58,8 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 return handle_create_order(event, customer_id)
             elif http_method == 'GET':
                 return handle_list_orders(event, query_parameters)
+            else:
+                return error_response(405, "Method not allowed")
 
         elif path.startswith('/v1/orders/'):
             order_id = path_parameters.get('id')
@@ -70,6 +72,8 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 return handle_update_order(order_id, event)
             elif http_method == 'DELETE':
                 return handle_delete_order(order_id)
+            else:
+                return error_response(405, "Method not allowed")
 
         return error_response(404, "Endpoint not found")
 
@@ -86,6 +90,10 @@ def handle_create_order(event: Dict[str, Any], customer_id: str) -> Dict[str, An
 
         # Generate order ID
         order_id = str(uuid.uuid4())
+
+        # Validate required fields
+        if 'total_amount' not in body:
+            return error_response(400, "Missing required field: total_amount")
 
         # Use authenticated customer_id or from body
         customer_id = customer_id or body.get('customer_id')
@@ -166,20 +174,19 @@ def handle_update_order(order_id: str, event: Dict[str, Any]) -> Dict[str, Any]:
         if not existing_order:
             return error_response(404, "Order not found")
 
-        # Prepare updates
-        updates = {}
+        # Update order fields
         if 'status' in body:
-            updates['status'] = body['status']
+            existing_order.status = OrderStatus(body['status'])
         if 'total_amount' in body:
-            updates['total_amount'] = body['total_amount']
+            existing_order.total_amount = Decimal(str(body['total_amount']))
         if 'items' in body:
-            updates['items'] = body['items']
+            existing_order.items = body['items']
 
-        if not updates:
-            return error_response(400, "No valid fields to update")
+        # Update timestamp
+        existing_order.updated_at = datetime.utcnow()
 
-        # Update order
-        updated_order = repository.update_order(order_id, updates)
+        # Save updated order
+        updated_order = repository.update_order(existing_order)
 
         logger.info(f"Order updated: {order_id}")
         return success_response(200, updated_order.to_dict())
@@ -204,7 +211,14 @@ def handle_delete_order(order_id: str) -> Dict[str, Any]:
         repository.delete_order(order_id)
 
         logger.info(f"Order deleted: {order_id}")
-        return success_response(200, {'message': 'Order deleted successfully'})
+        return {
+            'statusCode': 204,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': ''
+        }
 
     except Exception as e:
         logger.error(f"Error deleting order: {str(e)}")

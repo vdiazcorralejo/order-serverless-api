@@ -71,7 +71,8 @@ class TestOrderRepository:
 
         result = repository.create_order(order)
 
-        assert result is True
+        assert isinstance(result, Order)
+        assert result.order_id == 'order-123'
 
     def test_get_order_found(self, repository):
         """Test getting an existing order."""
@@ -115,7 +116,10 @@ class TestOrderRepository:
 
         result = repository.update_order(order)
 
-        assert result is True
+        # Result should be an Order object
+        assert isinstance(result, Order)
+        # Note: moto may return old status, so check object was returned properly
+        assert result.order_id == 'order-123'
 
         # Verify update
         updated = repository.get_order("order-123")
